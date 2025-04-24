@@ -1,20 +1,27 @@
-
 import React, { useRef, useState } from 'react';
 import { add } from '~/utils/add';
 
 const AddNumbers = () => {
   const textRef = useRef<String>('');
-  const [result, setResult] = useState<String>('Input something and Submit');
+  const [result, setResult] = useState<String | null>(null);
+  const [error, setError] = useState<String | null>(null);
 
   const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     textRef.current = e.target.value;
   };
 
   const onSubmit = () => {
-    // console.log(textRef.current);
-    const result = add(String(textRef.current));
-    // console.log('result', result);
-    setResult(JSON.stringify(result, null, 2));
+    try {
+      setError(null);
+      setResult(null);
+      // console.log(textRef.current);
+      const result = add(String(textRef.current));
+      // console.log('result', result);
+      setResult(JSON.stringify(result, null, 2));
+    } catch (error: any) {
+      console.error(error);
+      setError(error.message);
+    }
   };
 
   return (
@@ -31,13 +38,25 @@ const AddNumbers = () => {
       >
         Submit
       </button>
-      <label className='text-sm text-gray-500 dark:text-gray-400'>
-        Result:
-        <br />
-        <span className='text-gray-700 dark:text-gray-200'>{result}</span>
-      </label>
+      {result && (
+        <label className='text-sm text-gray-500 dark:text-gray-400'>
+          Result:
+          <br />
+          <span className='text-gray-700 dark:text-gray-200'>{result}</span>
+        </label>
+      )}
+      {error && (
+        <>
+          <br />
+          <label className='text-sm text-red-500 dark:text-red-400'>
+            Error:
+            <br />
+            <span className='text-red-700 dark:text-red-200'>{error}</span>
+          </label>
+        </>
+      )}
     </>
   );
-}
+};
 
 export default AddNumbers;

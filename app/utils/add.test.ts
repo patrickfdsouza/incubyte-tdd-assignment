@@ -25,4 +25,16 @@ describe('Add Numbers', () => {
     const result = add('1\n2\n3\n4');
     expect(result).toBe(10);
   });
+
+  it('should support passing custom delimiter', () => {
+    const result = add('//;\n1;2\n3\n4');
+    expect(result).toBe(10);
+  });
+
+  test('should throw exception for single or multiple negative numbers', () => {
+    expect(() => add('1,-2')).toThrow('Negative numbers not allowed: -2');
+    expect(() => add('1,-2,3,-4')).toThrow(
+      'Negative numbers not allowed: -2, -4'
+    );
+  });
 });
