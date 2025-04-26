@@ -1,49 +1,53 @@
 const defaultDelimiter = ',';
-const add = (numStr: string) => {
-  if (!numStr) return 0;
-  if (!numStr.matchAll(new RegExp(String.raw`/${defaultDelimiter}/`, 'g')))
-    return parseInt(numStr);
+
+export interface AddResult {
+  sum: number;
+  naNs: string[];
+  delimiter: string;
+  isDefaultDelimiter: boolean;
+  numbers: string[];
+}
+
+const add = (numStr: string): AddResult => {
+  if (!numStr) {
+    return {
+      sum: 0,
+      naNs: [],
+      delimiter: 'NA',
+      isDefaultDelimiter: true,
+      numbers: [],
+    };
+  }
 
   let delimiter = defaultDelimiter;
-  let isDefaultDelimiter = true;
   let input = numStr;
+  let isDefaultDelimiter = true;
 
-  if (numStr.startsWith('//')) {
-    const parts = numStr.split('\n');
-    const customDelimiter = parts[0].slice(2);
-    delimiter = customDelimiter; // custom delimiter
+  if (input.startsWith('//')) {
+    const [delimiterLine, ...rest] = input.split('\n');
+    delimiter = delimiterLine.slice(2);
+    input = rest.join(delimiter);
     isDefaultDelimiter = false;
-    // console.log('parts', parts);
-    parts.shift(); // remove the first part - the custom delimiter
-    // console.log('parts.shift()', parts);
-    input = parts.join(delimiter);
-    // console.log('input', input);
   }
 
-  
+  const numbers = input.replaceAll('\n', delimiter).split(delimiter);
+  const negatives = numbers.filter((num) => Number(num) < 0);
 
-  const numbers = input.replaceAll(/\n/g, delimiter).split(delimiter);
-  const negativeNumbers = numbers.filter((num: string) => parseInt(num) < 0);
-
-  // console.log(
-  //   `delimiter: " ${delimiter} ", isDefaultDelimiter: ${
-  //     isDefaultDelimiter ? 'Y' : 'N'
-  //   }, numbers: ${numbers}, negativeNumbers: ${
-  //     (negativeNumbers?.length > 0 && negativeNumbers) || 'N/A'
-  //   }`
-  // );
-
-  if (negativeNumbers.length > 0) {
-    throw new Error(
-      `Negative numbers not allowed: ${negativeNumbers.join(', ')}`
-    );
+  if (negatives.length > 0) {
+    throw new Error(`Negative numbers not allowed: ${negatives.join(', ')}`);
   }
 
-  const result = numbers.reduce((sum: number, current: string) => {
-    return !isNaN(parseInt(current)) ? sum + parseInt(current) : sum;
+  const naNs: string[] = [];
+  const sum = numbers.reduce((acc, curr) => {
+    const n = Number(curr);
+    if (isNaN(n)) {
+      naNs.push(curr);
+      return acc;
+    }
+    return acc + n;
   }, 0);
 
-  return result;
+  return { sum, naNs, delimiter, isDefaultDelimiter, numbers };
 };
 
 export { add };

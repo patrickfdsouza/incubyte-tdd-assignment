@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { add } from '~/utils/add';
+import { add, AddResult } from '~/utils/add';
 
 const AddNumbers = () => {
   const textRef = useRef<String>('');
-  const [result, setResult] = useState<String | null>(null);
+  const [result, setResult] = useState<AddResult | null>(null);
   const [error, setError] = useState<String | null>(null);
 
   const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -15,9 +15,10 @@ const AddNumbers = () => {
       setError(null);
       setResult(null);
       // console.log(textRef.current);
-      const result = add(String(textRef.current));
+      const calcResult = add(String(textRef.current));
       // console.log('result', result);
-      setResult(JSON.stringify(result, null, 2));
+      // setResult(JSON.stringify(result, null, 2));
+      setResult(calcResult);
     } catch (error: any) {
       console.error(error);
       setError(error.message);
@@ -42,8 +43,46 @@ const AddNumbers = () => {
         <label className='text-sm text-gray-500 dark:text-gray-400'>
           Result:
           <br />
-          <span className='text-gray-700 dark:text-gray-200'>{result}</span>
+          <span className='text-gray-700 dark:text-gray-200'>
+            {result?.sum}
+          </span>
         </label>
+      )}
+      <br />
+      {result && (
+        <>
+          <label className='text-sm text-blue-500 dark:text-blue-400'>
+            Delimiter:&emsp;
+            <span className='text-blue-700 dark:text-blue-200'>
+              {result?.delimiter}
+            </span>
+          </label>
+          <br />
+          <label className='text-sm text-blue-500 dark:text-blue-400'>
+            Is Customer Delimiter:&emsp;
+            <span className='text-blue-700 dark:text-blue-200'>
+              {!result?.isDefaultDelimiter ? 'Y' : 'N'}
+            </span>
+          </label>
+          <br />
+          {result?.numbers?.length > 0 && (
+            <label className='text-sm text-blue-500 dark:text-blue-400'>
+              Input found:&emsp;
+              <span className='text-blue-700 dark:text-blue-200'>
+                {result?.numbers?.join(' + ')}
+              </span>
+            </label>
+          )}
+          <br />
+          {result?.naNs?.length > 0 && (
+            <label className='text-sm text-blue-500 dark:text-blue-400'>
+              Ignored/NaNs:&emsp;
+              <span className='text-blue-700 dark:text-blue-200'>
+                {result?.naNs.join(' <--> ')}
+              </span>
+            </label>
+          )}
+        </>
       )}
       {error && (
         <>

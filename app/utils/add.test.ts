@@ -1,40 +1,58 @@
 import { add } from './add';
 
-describe('Add Numbers', () => {
-  it('should return 0 when blank string is passed', () => {
-    const result = add('');
-    expect(result).toBe(0);
+describe('Add Numbers - Basic Additions', () => {
+  it.each([
+    ['', 0],
+    ['23', 23],
+    ['2,3', 5],
+    ['1\n2,3\n4', 10],
+    ['1\n2\n3\n4', 10],
+    ['//;\n1;2\n3\n4', 10],
+  ])('should correctly add numbers for input "%s" and return "%s"', (input, expectedSum) => {
+    const result: any = add(input);
+    expect(result.sum).toBe(expectedSum);
   });
+});
 
-  it('should return same number when single number string is passed', () => {
-    const result = add('23');
-    expect(result).toBe(23);
+describe('Add Numbers - Handling Negatives', () => {
+  it.each([
+    ['1,-2', 'Negative numbers not allowed: -2'],
+    ['1,-2,3,-4', 'Negative numbers not allowed: -2, -4'],
+  ])('should throw error for input "%s" as "%s"', (input, errorMessage) => {
+    expect(() => add(input)).toThrow(errorMessage);
   });
+});
 
-  it('should return addition of 2 numbers when a comma separared string of 2 numbers is passed', () => {
-    const result = add('2,3');
-    expect(result).toBe(5);
-  });
+describe('Add Numbers - Handling NaNs', () => {
+  it.each([
+    ['1,2,3,4,abc', 10, ['abc']],
+    ['1\n2,3\n4,abc', 10, ['abc']],
+    ['1\n2\n3\n4,abc', 10, ['abc']],
+    ['//;\n1;2\n3\n4,abc', 6, ['4,abc']],
+    ['//;\n1;2\n3\n4,abc\ndef', 6, ['4,abc', 'def']],
+  ])(
+    'should ignore NaNs and sum valid numbers for input "%s" returning sum %d and NaNs "%s"',
+    (input, expectedSum, expectedNaNs) => {
+      const result: any = add(input);
+      expect(result.sum).toBe(expectedSum);
+      expect(result.naNs).toEqual(expectedNaNs);
+    }
+  );
+});
 
-  it('should return addition of numbers when a comma/line separared string of numbers is passed', () => {
-    const result = add('1\n2,3\n4');
-    expect(result).toBe(10);
-  });
-
-  it('should return addition of numbers when only a line separared string of numbers is passed', () => {
-    const result = add('1\n2\n3\n4');
-    expect(result).toBe(10);
-  });
-
-  it('should support passing custom delimiter', () => {
-    const result = add('//;\n1;2\n3\n4');
-    expect(result).toBe(10);
-  });
-
-  test('should throw exception for single or multiple negative numbers', () => {
-    expect(() => add('1,-2')).toThrow('Negative numbers not allowed: -2');
-    expect(() => add('1,-2,3,-4')).toThrow(
-      'Negative numbers not allowed: -2, -4'
-    );
+describe('Add Numbers - Other edge cases', () => {
+  it.each([
+    ['should handle multiple character delimiter', '//***\n1***2***3', 6],
+    ['should handle delimiter that looks like number', '//4\n14\n24', 3],
+    ['should ignore trailing delimiters', '1,2,3,', 6],
+    [
+      'should treat invalid custom delimiter without newline as 0 sum',
+      '//;1;2',
+      0,
+    ],
+    ['should handle consecutive delimiters gracefully', '1,,2', 3],
+  ])('%s', (_, input, expectedSum) => {
+    const result: any = add(input);
+    expect(result.sum).toBe(expectedSum);
   });
 });
